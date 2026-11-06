@@ -10,6 +10,7 @@ import {
 import { NOTE_REPOSITORY, NoteChange } from '../core/ports/note-repository.port';
 import { RECENT_NOTES_REPOSITORY } from '../core/ports/recent-notes-repository.port';
 import { ToastService } from '../shared/ui/toast/toast.service';
+import { ImportedNote } from './services/notes-transfer.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotesFacade {
@@ -139,6 +140,29 @@ export class NotesFacade {
     void this.noteRepository.create(note).finally(() => this.pendingCreateIds.delete(note.id));
     this.newNoteId.set(note.id);
     return note;
+  }
+
+  /**
+   * Creates the given notes. Returns false (and shows a toast) without importing
+   * anything when they would exceed the plan's note limit.
+   */
+  importNotes(drafts: ImportedNote[]): boolean {
+    const available = MAX_NOTES_PER_USER - this.notesState().length;
+    if (drafts.length > available) {
+      this.toastService.show(
+        `Can't import ${drafts.length} jottings: you have room for ${Math.max(available, 0)} of the ${MAX_NOTES_PER_USER} allowed on the free plan`,
+      );
+      return false;
+    }
+
+    const owner = this.authService.currentUser() ?? DEFAULT_NOTE_OWNER;
+    const notes: Note[] = drafts.map((draft) => ({ ...draft, id: crypto.randomUUID(), owner }));
+    this.notesState.update((current) => [...current, ...notes]);
+    for (const note of notes) {
+      this.pendingCreateIds.add(note.id);
+      void this.noteRepository.create(note).finally(() => this.pendingCreateIds.delete(note.id));
+    }
+    return true;
   }
 
   clearNewNoteId(): void {

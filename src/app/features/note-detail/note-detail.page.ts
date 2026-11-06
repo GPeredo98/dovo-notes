@@ -15,6 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ArrowLeft, LucideAngularModule, Pin, Settings2, Trash2 } from 'lucide-angular';
 import { NotesFacade } from '../../application/notes.facade';
 import { ChecklistEditorService } from '../../application/services/checklist-editor.service';
+import { DividerEditorService } from '../../application/services/divider-editor.service';
 import { TableEditorService } from '../../application/services/table-editor.service';
 import { MAX_NOTE_CONTENT_LENGTH } from '../../core/models/note.defaults';
 import { NoteColor } from '../../core/models/note.model';
@@ -36,6 +37,7 @@ export class NoteDetailPage {
   private readonly router = inject(Router);
   private readonly tableEditor = inject(TableEditorService);
   private readonly checklistEditor = inject(ChecklistEditorService);
+  private readonly dividerEditor = inject(DividerEditorService);
   private readonly toastService = inject(ToastService);
   private lastContentLimitToastAt = 0;
 
@@ -57,6 +59,7 @@ export class NoteDetailPage {
   private readonly saveContent = debounce((id: string, html: string) => this.facade.updateContent(id, html), 300);
   private detachTableEditor: (() => void) | null = null;
   private detachChecklistEditor: (() => void) | null = null;
+  private detachDividerEditor: (() => void) | null = null;
 
   constructor() {
     effect(() => {
@@ -66,10 +69,12 @@ export class NoteDetailPage {
       }
       this.detachTableEditor = this.tableEditor.attach(editorEl.nativeElement);
       this.detachChecklistEditor = this.checklistEditor.attach(editorEl.nativeElement);
+      this.detachDividerEditor = this.dividerEditor.attach(editorEl.nativeElement);
     });
     inject(DestroyRef).onDestroy(() => {
       this.detachTableEditor?.();
       this.detachChecklistEditor?.();
+      this.detachDividerEditor?.();
     });
 
     effect(() => {
@@ -92,15 +97,21 @@ export class NoteDetailPage {
       const id = this.id();
       const editorEl = this.editor();
       const note = this.facade.noteById(id);
-      if (!editorEl || document.activeElement === editorEl.nativeElement) {
+      // `contains` also covers nested editables (divider labels, tables) that hold the focus.
+      if (!editorEl || editorEl.nativeElement.contains(document.activeElement)) {
         return;
       }
       editorEl.nativeElement.innerHTML = note?.contentHtml ?? '';
     });
   }
 
-  protected onContentInput(event: Event): void {
-    const editorEl = event.target as HTMLDivElement;
+  protected onContentInput(): void {
+    // Read from the editor root, not `event.target`: input inside a nested editable
+    // (divider label, table) targets that element instead of the editor.
+    const editorEl = this.editor()?.nativeElement;
+    if (!editorEl) {
+      return;
+    }
     const value = this.tableEditor.getPersistableHtml(editorEl);
     this.saveContent(this.id(), value);
   }
@@ -110,7 +121,10 @@ export class NoteDetailPage {
       return;
     }
 
-    const editorEl = event.target as HTMLDivElement;
+    const editorEl = this.editor()?.nativeElement;
+    if (!editorEl) {
+      return;
+    }
     const currentLength = this.tableEditor.getPersistableHtml(editorEl).length;
     const incomingLength = this.getIncomingInputLength(event);
 
