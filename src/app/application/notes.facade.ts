@@ -34,24 +34,67 @@ export class NotesFacade {
       if (!userId) {
         return;
       }
-      const unsubscribe = this.noteRepository.subscribeToChanges(userId, (event) => {
-        if (event.type === 'delete') {
-          this.notesState.update((notes) => notes.filter((note) => note.id !== event.id));
-        } else {
-          this.applyRemoteNote(event.note);
+      const unsubscribe = this.noteRepository.subscribeToChanges(
+        userId,
+        (event) => {
+          if (event.type === 'delete') {
+            this.notesState.update((notes) => notes.filter((note) => note.id !== event.id));
+          } else {
+            this.applyRemoteNote(event.note);
+          }
+        },
+        () => void this.resync(),
+      );
+
+      // Realtime does not replay events missed while the socket was down (e.g. a phone
+      // in background or a sleeping tab), so resync whenever the app comes back.
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          void this.resync();
         }
+      };
+      const onOnline = () => void this.resync();
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('online', onOnline);
+
+      onCleanup(() => {
+        unsubscribe();
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('online', onOnline);
       });
-      onCleanup(unsubscribe);
     });
   }
+
+  private readonly pendingCreateIds = new Set<string>();
 
   private async reload(): Promise<void> {
     const [notes, recentIds] = await Promise.all([
       this.noteRepository.getAll(),
       this.recentNotesRepository.getRecentIds(),
     ]);
-    this.notesState.set(notes);
+    this.notesState.set(notes ?? []);
     this.recentIdsState.set(recentIds);
+  }
+
+  /** Merges the server state into the local one without discarding newer local edits. */
+  private async resync(): Promise<void> {
+    const remoteNotes = await this.noteRepository.getAll();
+    if (!remoteNotes) {
+      return;
+    }
+    const remoteIds = new Set(remoteNotes.map((note) => note.id));
+    this.notesState.update((localNotes) =>
+      localNotes.filter((note) => remoteIds.has(note.id) || this.pendingCreateIds.has(note.id)),
+    );
+    remoteNotes.forEach((note) => this.applyRemoteNote(note));
+  }
+
+  /** Fetches the latest server version of a note, e.g. when it is opened. */
+  async refreshNote(id: string): Promise<void> {
+    const latest = await this.noteRepository.getById(id);
+    if (latest) {
+      this.applyRemoteNote(latest);
+    }
   }
 
   readonly notes: Signal<Note[]> = computed(() =>
@@ -92,7 +135,8 @@ export class NotesFacade {
       pinned: false,
     };
     this.notesState.update((notes) => [...notes, note]);
-    void this.noteRepository.create(note);
+    this.pendingCreateIds.add(note.id);
+    void this.noteRepository.create(note).finally(() => this.pendingCreateIds.delete(note.id));
     this.newNoteId.set(note.id);
     return note;
   }

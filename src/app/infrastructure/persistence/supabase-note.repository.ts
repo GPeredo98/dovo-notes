@@ -15,7 +15,7 @@ import { NoteRow, mapChangesToRow, mapNoteToRow, mapRowToNote } from './note.map
 export class SupabaseNoteRepository implements NoteRepository {
   private readonly authService = inject(AuthService);
 
-  async getAll(): Promise<Note[]> {
+  async getAll(): Promise<Note[] | null> {
     const userId = this.authService.currentUserId();
     if (!userId) {
       return [];
@@ -29,11 +29,35 @@ export class SupabaseNoteRepository implements NoteRepository {
 
     if (error) {
       console.error('Failed to load notes', error);
-      return [];
+      return null;
     }
 
     const owner = this.authService.currentUser() ?? DEFAULT_NOTE_OWNER;
     return (data as NoteRow[]).map((row) => mapRowToNote(row, owner));
+  }
+
+  async getById(id: string): Promise<Note | null> {
+    const userId = this.authService.currentUserId();
+    if (!userId) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      if (error) {
+        console.error('Failed to load note', error);
+      }
+      return null;
+    }
+
+    const owner = this.authService.currentUser() ?? DEFAULT_NOTE_OWNER;
+    return mapRowToNote(data as NoteRow, owner);
   }
 
   async create(note: Note): Promise<void> {
@@ -99,8 +123,13 @@ export class SupabaseNoteRepository implements NoteRepository {
     }
   }
 
-  subscribeToChanges(userId: string, onEvent: (event: RemoteNoteEvent) => void): () => void {
+  subscribeToChanges(
+    userId: string,
+    onEvent: (event: RemoteNoteEvent) => void,
+    onReconnect?: () => void,
+  ): () => void {
     const owner = this.authService.currentUser() ?? DEFAULT_NOTE_OWNER;
+    let hasSubscribedBefore = false;
     const channel = supabase
       .channel(`notes-changes-${userId}`)
       .on(
@@ -122,6 +151,12 @@ export class SupabaseNoteRepository implements NoteRepository {
           console.error('Notes realtime subscription failed', status, err);
         } else {
           console.log('Notes realtime subscription status', status);
+        }
+        if (status === 'SUBSCRIBED') {
+          if (hasSubscribedBefore) {
+            onReconnect?.();
+          }
+          hasSubscribedBefore = true;
         }
       });
 

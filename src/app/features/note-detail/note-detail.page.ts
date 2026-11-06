@@ -80,6 +80,7 @@ export class NoteDetailPage {
           return;
         }
         this.facade.openNote(id);
+        void this.facade.refreshNote(id);
         if (this.facade.newNoteId() === id) {
           this.autoRenameId.set(id);
           this.facade.clearNewNoteId();
