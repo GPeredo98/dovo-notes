@@ -79,6 +79,10 @@ export class NoteDetailPage {
 
     effect(() => {
       const id = this.id();
+      // Wait for the initial load, otherwise a direct link would redirect before notes arrive.
+      if (this.facade.loading()) {
+        return;
+      }
       untracked(() => {
         if (!this.facade.noteById(id)) {
           this.router.navigate(['/']);

@@ -68,13 +68,31 @@ export class NotesFacade {
 
   private readonly pendingCreateIds = new Set<string>();
 
+  private readonly loadingState = signal(true);
+  /** True until the notes of the current user have been fetched for the first time. */
+  readonly loading = this.loadingState.asReadonly();
+  private reloadToken = 0;
+
   private async reload(): Promise<void> {
+    const token = ++this.reloadToken;
+    this.loadingState.set(true);
+    if (!this.authService.currentUserId()) {
+      this.notesState.set([]);
+      this.recentIdsState.set([]);
+      return;
+    }
+
     const [notes, recentIds] = await Promise.all([
       this.noteRepository.getAll(),
       this.recentNotesRepository.getRecentIds(),
     ]);
+    // Ignore results of a reload superseded by a newer one (e.g. the user changed meanwhile).
+    if (token !== this.reloadToken) {
+      return;
+    }
     this.notesState.set(notes ?? []);
     this.recentIdsState.set(recentIds);
+    this.loadingState.set(false);
   }
 
   /** Merges the server state into the local one without discarding newer local edits. */

@@ -34,6 +34,8 @@ export class NotesListPage {
     );
   });
   protected readonly hasNotes = computed(() => this.facade.notes().length > 0);
+  protected readonly loading = this.facade.loading;
+  protected readonly skeletonCards = [0, 1, 2, 3];
   protected readonly currentUser = this.authService.currentUser;
   protected readonly settingsIcon = Settings;
   protected readonly newNoteIcon = Plus;
