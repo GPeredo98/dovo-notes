@@ -13,7 +13,6 @@ const NOTE_COLORS: readonly NoteColor[] = ['default', 'red', 'orange', 'yellow',
 const FORBIDDEN_TAGS = 'script, style, iframe, frame, object, embed, link, meta, base, form, input, button, textarea, select, svg, math';
 const URL_ATTRIBUTES = ['href', 'src', 'xlink:href', 'action', 'formaction'];
 
-/** Builds and parses the JSON file used to export and import notes. */
 @Injectable({ providedIn: 'root' })
 export class NotesTransferService {
   buildExportFile(notes: Note[]): Blob {
@@ -88,7 +87,6 @@ export class NotesTransferService {
     return new Date().toISOString();
   }
 
-  /** Imported files may come from anyone, so strip anything that could run script. */
   private sanitizeHtml(html: string): string {
     const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
     doc.body.querySelectorAll(FORBIDDEN_TAGS).forEach((el) => el.remove());
@@ -96,7 +94,6 @@ export class NotesTransferService {
       for (const attr of Array.from(el.attributes)) {
         const name = attr.name.toLowerCase();
         const isScriptUrl = URL_ATTRIBUTES.includes(name) && /^\s*(javascript|data|vbscript):/i.test(attr.value);
-        // Highlights rely on inline `style`, so only drop styles that can load external resources.
         const isUnsafeStyle = name === 'style' && /url\s*\(|expression\s*\(|@import/i.test(attr.value);
         if (name.startsWith('on') || isScriptUrl || isUnsafeStyle) {
           el.removeAttribute(attr.name);

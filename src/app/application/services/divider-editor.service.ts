@@ -47,7 +47,6 @@ export class DividerEditorService {
     if (!label || !root.contains(label) || event.key !== 'Enter') {
       return;
     }
-    // A label is a single line: Enter moves the caret to the line below the divider.
     event.preventDefault();
     const divider = label.closest(LABELED_DIVIDER_SELECTOR)!;
     let next = divider.nextElementSibling;

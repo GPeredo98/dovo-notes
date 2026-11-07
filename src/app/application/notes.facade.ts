@@ -47,8 +47,6 @@ export class NotesFacade {
         () => void this.resync(),
       );
 
-      // Realtime does not replay events missed while the socket was down (e.g. a phone
-      // in background or a sleeping tab), so resync whenever the app comes back.
       const onVisibilityChange = () => {
         if (document.visibilityState === 'visible') {
           void this.resync();
@@ -69,7 +67,6 @@ export class NotesFacade {
   private readonly pendingCreateIds = new Set<string>();
 
   private readonly loadingState = signal(true);
-  /** True until the notes of the current user have been fetched for the first time. */
   readonly loading = this.loadingState.asReadonly();
   private reloadToken = 0;
 
@@ -86,7 +83,6 @@ export class NotesFacade {
       this.noteRepository.getAll(),
       this.recentNotesRepository.getRecentIds(),
     ]);
-    // Ignore results of a reload superseded by a newer one (e.g. the user changed meanwhile).
     if (token !== this.reloadToken) {
       return;
     }
@@ -95,7 +91,6 @@ export class NotesFacade {
     this.loadingState.set(false);
   }
 
-  /** Merges the server state into the local one without discarding newer local edits. */
   private async resync(): Promise<void> {
     const remoteNotes = await this.noteRepository.getAll();
     if (!remoteNotes) {
@@ -108,7 +103,6 @@ export class NotesFacade {
     remoteNotes.forEach((note) => this.applyRemoteNote(note));
   }
 
-  /** Fetches the latest server version of a note, e.g. when it is opened. */
   async refreshNote(id: string): Promise<void> {
     const latest = await this.noteRepository.getById(id);
     if (latest) {

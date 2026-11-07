@@ -12,7 +12,6 @@ export class AuthService {
   readonly currentUser = signal<string | null>(null);
   readonly currentUserId = signal<string | null>(null);
 
-  /** Resolves once the initial session restore (from persisted storage) has completed. */
   private readonly readyPromise: Promise<void>;
 
   constructor() {

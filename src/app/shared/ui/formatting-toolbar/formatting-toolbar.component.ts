@@ -31,7 +31,6 @@ export class FormattingToolbarComponent {
     inject(DestroyRef).onDestroy(() => document.removeEventListener('selectionchange', onSelectionChange));
   }
 
-  /** Keeps the editor selection alive when a toolbar button is pressed. */
   protected preventFocusLoss(event: MouseEvent): void {
     event.preventDefault();
   }

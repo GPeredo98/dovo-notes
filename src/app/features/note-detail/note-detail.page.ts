@@ -79,7 +79,6 @@ export class NoteDetailPage {
 
     effect(() => {
       const id = this.id();
-      // Wait for the initial load, otherwise a direct link would redirect before notes arrive.
       if (this.facade.loading()) {
         return;
       }
@@ -101,7 +100,6 @@ export class NoteDetailPage {
       const id = this.id();
       const editorEl = this.editor();
       const note = this.facade.noteById(id);
-      // `contains` also covers nested editables (divider labels, tables) that hold the focus.
       if (!editorEl || editorEl.nativeElement.contains(document.activeElement)) {
         return;
       }
@@ -110,8 +108,6 @@ export class NoteDetailPage {
   }
 
   protected onContentInput(): void {
-    // Read from the editor root, not `event.target`: input inside a nested editable
-    // (divider label, table) targets that element instead of the editor.
     const editorEl = this.editor()?.nativeElement;
     if (!editorEl) {
       return;

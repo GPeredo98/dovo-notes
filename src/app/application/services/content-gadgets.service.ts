@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 interface EditorLine {
   nodes: Node[];
   lineBreak: Node | null;
-  /** Text block (p/div) the line lives in, or null when it sits directly in the editor root. */
   block: HTMLElement | null;
   existingItem: HTMLElement | null;
 }
@@ -114,7 +113,6 @@ export class ContentGadgetsService {
     editorRoot.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  /** Splits the editor content into visual lines (separated by blocks or `<br>`). */
   private collectLines(editorRoot: HTMLElement): EditorLine[] {
     const lines: EditorLine[] = [];
     let inlineRun: Node[] = [];
@@ -160,7 +158,6 @@ export class ContentGadgetsService {
     return lines;
   }
 
-  /** A line counts as selected only if the selection covers at least one of its characters. */
   private isLineSelected(nodes: Node[], range: Range): boolean {
     const lineText = nodes.map((node) => node.textContent ?? '').join('');
     if (lineText.trim().length === 0) {
@@ -180,7 +177,6 @@ export class ContentGadgetsService {
     return beforeEnd.toString().length > 0 && afterStart.toString().length > 0;
   }
 
-  /** Removes a wrapper block, keeping checklist items as siblings and re-wrapping leftover text. */
   private unwrapBlock(block: HTMLElement): void {
     const parent = block.parentNode;
     if (!parent) {

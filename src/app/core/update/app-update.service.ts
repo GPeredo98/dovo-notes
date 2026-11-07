@@ -4,7 +4,6 @@ import { first } from 'rxjs/operators';
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
-/** Reloads the app automatically when a new deployed version is detected. */
 @Injectable({ providedIn: 'root' })
 export class AppUpdateService {
   private readonly swUpdate = inject(SwUpdate);

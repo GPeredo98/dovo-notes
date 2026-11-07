@@ -3,7 +3,6 @@ import { AuthService } from '../../core/auth/auth.service';
 import { RecentNotesRepository } from '../../core/ports/recent-notes-repository.port';
 import { supabase } from '../../core/supabase/supabase-client';
 
-/** Recent tab ids are stored as a jsonb array on the `profiles` row (column `recent_notes_ids`). */
 @Injectable()
 export class SupabaseRecentNotesRepository implements RecentNotesRepository {
   private readonly authService = inject(AuthService);
