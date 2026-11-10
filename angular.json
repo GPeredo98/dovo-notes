@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "jottings-app": {
+    "dovo-notes": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -57,10 +57,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "jottings-app:build:production"
+              "buildTarget": "dovo-notes:build:production"
             },
             "development": {
-              "buildTarget": "jottings-app:build:development"
+              "buildTarget": "dovo-notes:build:development"
             }
           },
           "defaultConfiguration": "development"

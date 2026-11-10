@@ -132,7 +132,7 @@ export class NotesFacade {
 
   createNote(): Note | null {
     if (this.notesState().length >= MAX_NOTES_PER_USER) {
-      this.toastService.show(`You reach the limite of ${MAX_NOTES_PER_USER} jottings on the free plan`);
+      this.toastService.show(`You reach the limite of ${MAX_NOTES_PER_USER} notes on the free plan`);
       return null;
     }
 
@@ -162,7 +162,7 @@ export class NotesFacade {
     const available = MAX_NOTES_PER_USER - this.notesState().length;
     if (drafts.length > available) {
       this.toastService.show(
-        `Can't import ${drafts.length} jottings: you have room for ${Math.max(available, 0)} of the ${MAX_NOTES_PER_USER} allowed on the free plan`,
+        `Can't import ${drafts.length} notes: you have room for ${Math.max(available, 0)} of the ${MAX_NOTES_PER_USER} allowed on the free plan`,
       );
       return false;
     }

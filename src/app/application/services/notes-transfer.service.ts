@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DEFAULT_NOTE_TITLE, MAX_NOTE_CONTENT_LENGTH } from '../../core/models/note.defaults';
 import { Note, NoteColor } from '../../core/models/note.model';
 
-export const NOTES_EXPORT_FORMAT = 'jottings-notes';
+export const NOTES_EXPORT_FORMAT = 'dovo-notes';
 export const NOTES_EXPORT_VERSION = 1;
 
 export type ImportedNote = Pick<Note, 'title' | 'contentHtml' | 'color' | 'pinned' | 'createdAt' | 'updatedAt'>;
@@ -33,7 +33,7 @@ export class NotesTransferService {
   }
 
   exportFileName(): string {
-    return `jottings-${new Date().toISOString().slice(0, 10)}.json`;
+    return `notes-${new Date().toISOString().slice(0, 10)}.json`;
   }
 
   parseImportFile(text: string): ParseResult {
@@ -46,20 +46,20 @@ export class NotesTransferService {
 
     const rawNotes = Array.isArray(data) ? data : (data as { notes?: unknown })?.notes;
     if (!Array.isArray(rawNotes)) {
-      return { ok: false, error: 'The file does not contain any jottings' };
+      return { ok: false, error: 'The file does not contain any notes' };
     }
 
     const notes: ImportedNote[] = [];
     for (const raw of rawNotes) {
       if (!raw || typeof raw !== 'object') {
-        return { ok: false, error: 'The file contains an invalid jotting' };
+        return { ok: false, error: 'The file contains an invalid note' };
       }
       const record = raw as Record<string, unknown>;
       const contentHtml = this.sanitizeHtml(typeof record['contentHtml'] === 'string' ? record['contentHtml'] : '');
       if (contentHtml.length > MAX_NOTE_CONTENT_LENGTH) {
         return {
           ok: false,
-          error: `A jotting exceeds the limit of ${MAX_NOTE_CONTENT_LENGTH} characters on the free plan`,
+          error: `A note exceeds the limit of ${MAX_NOTE_CONTENT_LENGTH} characters on the free plan`,
         };
       }
       const title = typeof record['title'] === 'string' ? record['title'].trim() : '';
@@ -75,7 +75,7 @@ export class NotesTransferService {
     }
 
     if (notes.length === 0) {
-      return { ok: false, error: 'The file does not contain any jottings' };
+      return { ok: false, error: 'The file does not contain any notes' };
     }
     return { ok: true, notes };
   }

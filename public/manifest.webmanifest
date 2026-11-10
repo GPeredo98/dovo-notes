@@ -1,6 +1,6 @@
 {
-  "name": "Jottings",
-  "short_name": "Jottings",
+  "name": "Dovo Notes",
+  "short_name": "Dovo Notes",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

@@ -45,7 +45,7 @@ export class SettingsPage {
   protected exportNotes(): void {
     const notes = this.notesFacade.notes();
     if (notes.length === 0) {
-      this.toastService.show('You have no jottings to export');
+      this.toastService.show('You have no notes to export');
       return;
     }
     const url = URL.createObjectURL(this.notesTransfer.buildExportFile(notes));
@@ -71,7 +71,7 @@ export class SettingsPage {
     }
     if (this.notesFacade.importNotes(result.notes)) {
       const count = result.notes.length;
-      this.toastService.show(`Imported ${count} ${count === 1 ? 'jotting' : 'jottings'}`);
+      this.toastService.show(`Imported ${count} ${count === 1 ? 'note' : 'notes'}`);
     }
   }
 
