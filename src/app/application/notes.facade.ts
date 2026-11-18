@@ -87,7 +87,7 @@ export class NotesFacade {
       return;
     }
     this.notesState.set(notes ?? []);
-    this.recentIdsState.set(recentIds);
+    this.recentIdsState.set(recentIds.slice(0, MAX_RECENT_NOTES));
     this.loadingState.set(false);
   }
 
@@ -211,10 +211,12 @@ export class NotesFacade {
     if (!this.noteById(id)) {
       return;
     }
-    this.recentIdsState.update((ids) => {
-      const withoutId = ids.filter((recentId) => recentId !== id);
-      return [id, ...withoutId].slice(0, MAX_RECENT_NOTES);
-    });
+    // Tabs keep their opening order: a newly opened note goes to the left and, once the
+    // limit is reached, the oldest one (rightmost) is dropped. Reopening a tab doesn't move it.
+    if (this.recentIdsState().includes(id)) {
+      return;
+    }
+    this.recentIdsState.update((ids) => [id, ...ids].slice(0, MAX_RECENT_NOTES));
     void this.recentNotesRepository.saveRecentIds(this.recentIdsState());
   }
 

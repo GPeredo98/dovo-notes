@@ -20,6 +20,39 @@ export class ContentGadgetsService {
     document.execCommand('insertHTML', false, `${this.buildTableHtml(2, 2)}<p><br></p>`);
   }
 
+  insertCodeBlock(): void {
+    const selection = document.getSelection();
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+    const anchor = range ? this.closestElement(range.startContainer) : null;
+    if (!anchor?.closest('[contenteditable="true"]') || anchor.closest('.qn-code')) {
+      return;
+    }
+    const selectedText = range!.collapsed ? '' : range!.toString();
+    document.execCommand(
+      'insertHTML',
+      false,
+      '<div class="qn-code" contenteditable="false">' +
+        '<button type="button" class="qn-code-copy" title="Copy code" aria-label="Copy code"></button>' +
+        '<pre class="qn-code-body" contenteditable="true" spellcheck="false" data-qn-new></pre>' +
+        '</div><p><br></p>',
+    );
+
+    // execCommand leaves the caret after the block; move it inside the new code body.
+    const body = document.querySelector<HTMLElement>('.qn-code-body[data-qn-new]');
+    if (!body) {
+      return;
+    }
+    body.removeAttribute('data-qn-new');
+    body.textContent = selectedText;
+    body.focus();
+    const caret = document.createRange();
+    caret.selectNodeContents(body);
+    caret.collapse(false);
+    selection!.removeAllRanges();
+    selection!.addRange(caret);
+    body.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   insertChecklistItem(): void {
     const selection = document.getSelection();
     const range = selection?.rangeCount ? selection.getRangeAt(0) : null;

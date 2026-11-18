@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ListTodo, LucideAngularModule, SeparatorHorizontal, Table } from 'lucide-angular';
+import { ListTodo, LucideAngularModule, SeparatorHorizontal, SquareCode, Table } from 'lucide-angular';
 import { ContentGadgetsService } from '../../../application/services/content-gadgets.service';
 
 @Component({
@@ -14,6 +14,7 @@ export class GadgetsToolbarComponent {
   protected readonly dividerIcon = SeparatorHorizontal;
   protected readonly tableIcon = Table;
   protected readonly checklistIcon = ListTodo;
+  protected readonly codeIcon = SquareCode;
 
   protected preventFocusLoss(event: MouseEvent): void {
     event.preventDefault();
@@ -29,5 +30,9 @@ export class GadgetsToolbarComponent {
 
   protected insertChecklistItem(): void {
     this.gadgets.insertChecklistItem();
+  }
+
+  protected insertCodeBlock(): void {
+    this.gadgets.insertCodeBlock();
   }
 }

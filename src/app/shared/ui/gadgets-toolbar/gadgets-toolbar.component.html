@@ -26,4 +26,13 @@
   >
     <lucide-icon [img]="checklistIcon" class="h-4 w-4"></lucide-icon>
   </button>
+  <button
+    type="button"
+    class="inline-flex h-8 w-8 items-center justify-center rounded hover:bg-black/5 dark:text-neutral-100 dark:hover:bg-white/5"
+    title="Insert code fragment"
+    (mousedown)="preventFocusLoss($event)"
+    (click)="insertCodeBlock()"
+  >
+    <lucide-icon [img]="codeIcon" class="h-4 w-4"></lucide-icon>
+  </button>
 </div>

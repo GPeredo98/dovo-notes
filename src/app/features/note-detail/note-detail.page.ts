@@ -15,6 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ArrowLeft, LucideAngularModule, Pin, Settings2, Trash2 } from 'lucide-angular';
 import { NotesFacade } from '../../application/notes.facade';
 import { ChecklistEditorService } from '../../application/services/checklist-editor.service';
+import { CodeBlockEditorService } from '../../application/services/code-block-editor.service';
 import { DividerEditorService } from '../../application/services/divider-editor.service';
 import { TableEditorService } from '../../application/services/table-editor.service';
 import { MAX_NOTE_CONTENT_LENGTH } from '../../core/models/note.defaults';
@@ -38,6 +39,7 @@ export class NoteDetailPage {
   private readonly tableEditor = inject(TableEditorService);
   private readonly checklistEditor = inject(ChecklistEditorService);
   private readonly dividerEditor = inject(DividerEditorService);
+  private readonly codeBlockEditor = inject(CodeBlockEditorService);
   private readonly toastService = inject(ToastService);
   private lastContentLimitToastAt = 0;
 
@@ -60,6 +62,7 @@ export class NoteDetailPage {
   private detachTableEditor: (() => void) | null = null;
   private detachChecklistEditor: (() => void) | null = null;
   private detachDividerEditor: (() => void) | null = null;
+  private detachCodeBlockEditor: (() => void) | null = null;
 
   constructor() {
     effect(() => {
@@ -70,11 +73,13 @@ export class NoteDetailPage {
       this.detachTableEditor = this.tableEditor.attach(editorEl.nativeElement);
       this.detachChecklistEditor = this.checklistEditor.attach(editorEl.nativeElement);
       this.detachDividerEditor = this.dividerEditor.attach(editorEl.nativeElement);
+      this.detachCodeBlockEditor = this.codeBlockEditor.attach(editorEl.nativeElement);
     });
     inject(DestroyRef).onDestroy(() => {
       this.detachTableEditor?.();
       this.detachChecklistEditor?.();
       this.detachDividerEditor?.();
+      this.detachCodeBlockEditor?.();
     });
 
     effect(() => {
