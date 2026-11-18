@@ -5,6 +5,12 @@ import { supabase } from '../supabase/supabase-client';
 
 export type ThemeMode = 'dark' | 'light';
 
+/** Must match the body background for each theme in styles.css. */
+const THEME_COLORS: Record<ThemeMode, string> = {
+  dark: '#0a0a0a',
+  light: '#fafafa',
+};
+
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly authService = inject(AuthService);
@@ -60,5 +66,9 @@ export class ThemeService {
     root.classList.toggle('dark', theme === 'dark');
     root.classList.toggle('light', theme === 'light');
     root.style.colorScheme = theme;
+    // Keep the system bars (Android status bar, task switcher) in sync with the app background.
+    this.document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', THEME_COLORS[theme]);
   }
 }

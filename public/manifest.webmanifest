@@ -2,6 +2,8 @@
   "name": "Dovo Notes",
   "short_name": "Dovo Notes",
   "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "scope": "./",
   "start_url": "./",
   "icons": [

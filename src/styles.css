@@ -20,6 +20,11 @@ html.light body {
   color: #111827;
 }
 
+/* Full-screen surface that paints its own background under the status bar / home indicator. */
+.qn-safe-area {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 /* Editor gadgets: horizontal dividers and tables inserted via the gadgets toolbar. */
 
 /* The divider is drawn as a centered 1px line inside a taller box so it is easy to click. */
